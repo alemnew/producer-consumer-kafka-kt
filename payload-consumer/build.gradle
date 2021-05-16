@@ -24,7 +24,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     implementation 'com.beust:klaxon:5.5'
     implementation 'org.apache.kafka:kafka-streams:1.0.1'
-    implementation 'log4j:log4j:1.2.17'
 }
 
 test {

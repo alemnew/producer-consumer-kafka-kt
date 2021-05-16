@@ -4,9 +4,17 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.util.*
+import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
-    PayloadReaderSender("localhost:9093").produce(2)
+    if (args.isEmpty()){
+        println("Broker address and port is missing.")
+        println("Please enter broker address in the format name:port or ip:port")
+        exitProcess(1)
+    }else {
+        val brokers = args[0]
+        PayloadReaderSender(brokers).produce(2)
+    }
 }
 
 class PayloadReaderSender(brokers: String) {

@@ -1,0 +1,5 @@
+FROM openjdk:8-jre-alpine
+WORKDIR /app
+COPY ./src/main/resources/sensor_data.json .
+ADD ./build/libs/payload-producer-1.0.jar payload-producer.jar
+#CMD ["java", "-jar", "payload-producer.jar", "localhost:9092"]
