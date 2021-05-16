@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.0'
+}
+
+group 'io.alem'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+final def jar = jar {
+    manifest {
+        attributes 'Implementation-Title': 'Payload Consumer',
+                'Main-Class': 'io.alem.skylo.PayloadConsumerKt'
+    }
+    from { configurations.runtimeClasspath.collect {
+        it.isDirectory() ? it : zipTree(it) } }
+}
+jar
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    implementation 'com.beust:klaxon:5.5'
+    implementation 'org.apache.kafka:kafka-streams:1.0.1'
+    implementation 'log4j:log4j:1.2.17'
+}
+
+test {
+    useJUnitPlatform()
+}
