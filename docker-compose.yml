@@ -1,28 +1,71 @@
-version: "3"
+version: '3.5'
+
+networks:
+  kafka_net:
+    name: kafka_net
+    driver: bridge
+
 services:
-  zookeeper:
+  zookeeper-server:
+    container_name: zookeeper-server
     image: 'bitnami/zookeeper:latest'
+    networks:
+      - kafka_net
     ports:
       - '2181:2181'
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
-  kafka:
+
+  kafka-server:
+    container_name: kafka-server
     image: 'bitnami/kafka:latest'
+    networks:
+      - kafka_net
     ports:
       - '9093:9093'
     environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181
+      - KAFKA_CFG_LISTENERS=INTERNAL://kafka-server:9093,EXTERNAL://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-server:9093,EXTERNAL://localhost:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
       - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
-      - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
     depends_on:
-      - zookeeper
+      - zookeeper-server
 
+  payload-producer:
+    container_name: payload-producer
+    image: payload-producer
+    depends_on:
+      - kafka-server
+    networks:
+      - kafka_net
+    command: /bin/sh -c "sleep 999999"
+#    entrypoint:
+#      - /bin/sh
+#      - c
+#      - |
+#        echo 'Waiting Kafka to start up ...'
+#        sleep 30
+#
+#        # Run payload producer app
+#        java -jar payload-producer.jar kafka-server:9093
 
-volumes:
-  zookeeper_data:
-    driver: local
-  kafka_data:
-    driver: local
+  payload-consumer:
+    container_name: payload-consumer
+    image: payload-consumer
+    depends_on:
+      - kafka-server
+    networks:
+      - kafka_net
+    command: /bin/sh -c "sleep 999999"
+#    entrypoint:
+#      - /bin/sh
+#      - c
+#      - |
+#        echo 'Waiting Kafka to start up ...'
+#        sleep 45
+#
+#        # Run payload consumer
+#        java -jar payload-consumer.jar kafka-server:9093
+

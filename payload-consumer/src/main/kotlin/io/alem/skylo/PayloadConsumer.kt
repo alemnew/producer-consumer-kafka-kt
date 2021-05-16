@@ -1,22 +1,29 @@
-// * Copyright 2021
-// * @author Alemnew Asrese
-
+/* Copyright 2021
+* @author Alemnew Asrese
+*/
 
 package io.alem.skylo
 
 import com.beust.klaxon.Klaxon
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.*
+import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
-    val payloadConsumer = PayloadConsumerProcessor("localhost:9093", "payload")
-    payloadConsumer.start()
+    if (args.isEmpty()){
+        println("Broker address and port is missing.")
+        println("Please enter broker address in the format NAME:PORT or IP:PORT")
+        exitProcess(1)
+    }else {
+        val brokers = args[0]
+        val payloadConsumer = PayloadConsumerProcessor(brokers, "payload")
+        payloadConsumer.start()
+    }
 }
 
 class PayloadConsumerProcessor(brokers: String, private val inputTopic: String) {
@@ -96,7 +103,6 @@ class PayloadConsumerProcessor(brokers: String, private val inputTopic: String) 
                 currentEvent?.add(payload?.eventTime)
             }
             timeEventOfHubs[payload?.hubSystemId] = currentEvent
-            //println("E: ${payload?.hubSystemId} -> ${timeEventOfHubs[payload?.hubSystemId]}")
         }
         return timeEventOfHubs
     }
@@ -113,15 +119,14 @@ class PayloadConsumerProcessor(brokers: String, private val inputTopic: String) 
         val eventTimes = et[hubSystemId]
         println("=============== Event Transmission Timeline for Hub $hubSystemId ===============")
         try {
-            val eventTimesSet  = mutableSetOf<String>()
+            val eventTimesSet = mutableSetOf<String>()
             if (eventTimes != null) for (et in eventTimes) {
                 val eventTimeZdt = ZonedDateTime.parse(et).withZoneSameInstant(ZoneId.systemDefault())
                 eventTimesSet.add(eventTimeZdt.format(DateTimeFormatter.ofPattern("YYYY-MM-dd HH")))
-                //print("${eventTimeZdt.format(DateTimeFormatter.ofPattern("dd-MM-YYYY HH"))} |")
             }
 
             /* sort event times in ascending order.*/
-            val sortedEventTimesZdt = eventTimesSet.sortedBy {it}
+            val sortedEventTimesZdt = eventTimesSet.sortedBy { it }
             println(sortedEventTimesZdt)
 
         } catch (e: DateTimeParseException) {
