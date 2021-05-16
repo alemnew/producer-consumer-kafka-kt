@@ -72,6 +72,7 @@ class PayloadConsumerProcessor(brokers: String, private val inputTopic: String) 
 
     /**
      * Calculate the most frequently transmitting hubs.
+     * @param payloadData list of received payload data.
      */
     private fun calculateHistogram(payloadData: List<PayloadData?>) {
         //val hubSystemIdFrequencyMap: MutableMap<String?, Int> = HashMap()
