@@ -34,7 +34,7 @@ class PayloadReaderSender(brokers: String) {
         val payloadArray = Utils().getPayloads(PATHNAME)
         for (payload in payloadArray) {
             val futureResult = producer.send(ProducerRecord(PAYLOADS_TOPIC, payload.payload))
-            println("${payload.payload} Sent a payload")
+            println(payload.payload)
             Thread.sleep(waitTimeBetweenIterationsMs)
             // wait for the write acknowledgment
             futureResult.get()

@@ -16,8 +16,8 @@ import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     if (args.isEmpty()){
-        println("Broker address and port is missing.")
-        println("Please enter broker address in the format NAME:PORT or IP:PORT")
+        println("Broker address and port are missing.")
+        println("Please enter broker address. NAME:PORT or IP:PORT")
         exitProcess(1)
     }else {
         val brokers = args[0]
@@ -46,25 +46,32 @@ class PayloadConsumerProcessor(brokers: String, private val inputTopic: String) 
     fun start() {
         payloadConsumer.subscribe(listOf(inputTopic))
         readFromInputTopic()
-        calculateHistogram(payloadData)
+        val hubSystemId  = "HUBFIN015"
+        val hubSystemIdFrequencyMap = calculateHistogram(payloadData)
         val et = getEventTimeOfSensors(payloadData)
-        calculateTransmissionTimelinePerHour(et, "HUBFIN015")
+        val timelinePerHr =  calculateTransmissionTimelinePerHour(et, hubSystemId)
+
+        /* Display result */
+        println("--- Histogram of Frequently transmitting Hubs ---")
+        println(hubSystemIdFrequencyMap)
+
+        println("------ Event Transmission Timeline for Hub $hubSystemId -------")
+        println(timelinePerHr)
+
+
     }
 
     /**
      *  Read payload from kafka stream server and return hubSystemId.
      */
-    private fun readFromInputTopic() {
+    fun readFromInputTopic() {
         while (true) {
             val payloads = payloadConsumer.poll(5000)
             if (!payloads.isEmpty) {
-                val payloadArray = arrayListOf<String>()
                 for (payload in payloads) {
-                    payloadArray.add(payload.value())
                     payloadData.add(klaxon.parse<PayloadData>(payload.value()))
                 }
             } else {
-                // println("No messages to read and poll timeout reached ... exit")
                 break
             }
         }
@@ -74,16 +81,17 @@ class PayloadConsumerProcessor(brokers: String, private val inputTopic: String) 
      * Calculate the most frequently transmitting hubs.
      * @param payloadData list of received payload data.
      */
-    private fun calculateHistogram(payloadData: List<PayloadData?>) {
-        //val hubSystemIdFrequencyMap: MutableMap<String?, Int> = HashMap()
+    fun calculateHistogram(payloadData: List<PayloadData?>): MutableMap<String?, Int>{
+        val hubSystemIdFrequencyMap: MutableMap<String?, Int> = HashMap()
         val hubSystemIdArray = arrayListOf<String?>()
         for (payload in payloadData) {
             hubSystemIdArray.add(payload?.hubSystemId)
         }
-
         for (hubSystemId in hubSystemIdArray.distinct()) {
-            println(hubSystemId + ": " + Collections.frequency(hubSystemIdArray, hubSystemId))
+            hubSystemIdFrequencyMap[hubSystemId] = Collections.frequency(hubSystemIdArray, hubSystemId)
         }
+
+        return hubSystemIdFrequencyMap
     }
 
     /**
@@ -91,7 +99,7 @@ class PayloadConsumerProcessor(brokers: String, private val inputTopic: String) 
      * @param payloadData list of payload data
      * @return  Map with hubSystemId and list of event times.
      */
-    private fun getEventTimeOfSensors(payloadData: List<PayloadData?>): MutableMap<String?, MutableList<String?>?> {
+    fun getEventTimeOfSensors(payloadData: List<PayloadData?>): MutableMap<String?, MutableList<String?>?> {
         val timeEventOfHubs: MutableMap<String?, MutableList<String?>?> = HashMap()
         var currentEvent: MutableList<String?>?
         for (payload in payloadData) {
@@ -113,12 +121,12 @@ class PayloadConsumerProcessor(brokers: String, private val inputTopic: String) 
      * @param et a map of event time (hubSystemId as a key and list of event times as a value).
      * @param hubSystemId an identified for the hub.
      */
-    private fun calculateTransmissionTimelinePerHour(
+    fun calculateTransmissionTimelinePerHour(
         et: MutableMap<String?, MutableList<String?>?>,
         hubSystemId: String
-    ) {
+    ): List<String> {
+        var sortedEventTimesZdt = emptyList<String>()
         val eventTimes = et[hubSystemId]
-        println("=============== Event Transmission Timeline for Hub $hubSystemId ===============")
         try {
             val eventTimesSet = mutableSetOf<String>()
             if (eventTimes != null) for (et in eventTimes) {
@@ -127,12 +135,11 @@ class PayloadConsumerProcessor(brokers: String, private val inputTopic: String) 
             }
 
             /* sort event times in ascending order.*/
-            val sortedEventTimesZdt = eventTimesSet.sortedBy { it }
-            println(sortedEventTimesZdt)
-
+            sortedEventTimesZdt = eventTimesSet.sortedBy { it }
         } catch (e: DateTimeParseException) {
             println("Date parsing error.")
         }
+        return sortedEventTimesZdt
     }
 
 }
