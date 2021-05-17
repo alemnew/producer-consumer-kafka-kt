@@ -1,6 +1,14 @@
-/* Copyright 2021
-* @author Alemnew Asrese
-*/
+/*
+ * Copyright (c) 2021 Alemnew Asrese
+ * <p>
+ * A message consumer from Kafka broker and process it. The program subscribes to a Kafka broker and reads the
+ * messages. It process the messages it receive to  produce Histogram and timeline of transmission (eventTime) for a
+ * given sender (hub system in this case).
+ *
+ * @author alemnewsh@gmail.com Alemnew Asrese
+ * @version 1.0
+ * Created on 2021/05/17
+ */
 
 package io.alem.skylo
 

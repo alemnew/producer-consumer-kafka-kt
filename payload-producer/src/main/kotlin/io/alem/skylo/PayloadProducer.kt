@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2021 Alemnew Asrese
+ * <p>
+ * A message producer and sender to Kafka broker. The program reads messages from JSON file and send them through Kafka
+ * Producer.
+ *
+ * @author alemnewsh@gmail.com Alemnew Asrese
+ * @version 1.0
+ * Created on 2021/05/17
+ */
+
 package io.alem.skylo
 
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -29,6 +40,7 @@ class PayloadReaderSender(brokers: String) {
         return KafkaProducer<String, String>(props)
     }
 
+    /** get the payload from json file and send to the Kafka broker. */
     fun produce(ratePerSecond: Int) {
         val waitTimeBetweenIterationsMs = 1000L / ratePerSecond
         val payloadArray = Utils().getPayloads(PATHNAME)
