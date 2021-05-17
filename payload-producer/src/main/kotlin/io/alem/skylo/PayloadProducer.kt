@@ -1,8 +1,21 @@
+/*
+ * Copyright (c) 2021 Alemnew Asrese
+ * <p>
+ * A message producer and sender to Kafka broker. The program reads messages from JSON file and send them through Kafka
+ * Producer.
+ *
+ * @author alemnewsh@gmail.com Alemnew Asrese
+ * @version 1.0
+ * Created on 2021/05/17
+ */
+
 package io.alem.skylo
 
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.KafkaException
+import java.lang.Exception
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -13,7 +26,12 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }else {
         val brokers = args[0]
-        PayloadReaderSender(brokers).produce(2)
+        val ipAndPort = brokers.split(":")
+        if(ipAndPort.size == 2 && ipAndPort[1].toIntOrNull().let { true }) {
+            PayloadReaderSender(brokers).produce(2)
+        } else {
+            println("Broker address not correct.")
+        }
     }
 }
 
@@ -29,15 +47,22 @@ class PayloadReaderSender(brokers: String) {
         return KafkaProducer<String, String>(props)
     }
 
+    /** get the payload from json file and send to the Kafka broker. */
     fun produce(ratePerSecond: Int) {
         val waitTimeBetweenIterationsMs = 1000L / ratePerSecond
         val payloadArray = Utils().getPayloads(PATHNAME)
-        for (payload in payloadArray) {
-            val futureResult = producer.send(ProducerRecord(PAYLOADS_TOPIC, payload.payload))
-            println(payload.payload)
-            Thread.sleep(waitTimeBetweenIterationsMs)
-            // wait for the write acknowledgment
-            futureResult.get()
+        try {
+            for (payload in payloadArray) {
+                val futureResult = producer.send(ProducerRecord(PAYLOADS_TOPIC, payload.payload))
+                println(payload.payload)
+                Thread.sleep(waitTimeBetweenIterationsMs)
+                // wait for the write acknowledgment
+                futureResult.get()
+            }
+        } catch (e: KafkaException) {
+            println("Kafka Exception ERROR: ${e.stackTrace.toString()}")
+        } catch (e: Exception) {
+            println("ERROR. ${e.stackTrace.toString()}")
         }
     }
 }

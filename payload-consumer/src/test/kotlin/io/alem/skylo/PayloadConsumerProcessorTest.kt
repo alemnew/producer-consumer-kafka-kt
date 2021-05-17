@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2021 Alemnew Asrese
+ * <p>
+ * A test program to produce Histogram and timeline of  transmission from a data.
+ *
+ * @author alemnewsh@gmail.com Alemnew Asrese
+ * @version 1.0
+ * Created on 2021/05/17
+ */
+
 package io.alem.skylo
 
 import com.beust.klaxon.Klaxon

@@ -2,6 +2,7 @@ package io.alem.skylo
 
 import com.beust.klaxon.JsonReader
 import com.beust.klaxon.Klaxon
+import com.beust.klaxon.KlaxonException
 import java.io.File
 import java.io.StringReader
 
@@ -18,8 +19,10 @@ class Utils {
                     }
                 }
             }
+        } catch (e: KlaxonException) {
+            println("Klaxon parsing ERROR: ${e.stackTrace.toString()}")
         } catch (e: Exception) {
-            println(e.stackTrace)
+            println("ERROR: ${e.stackTrace.toString()}")
         }
         return payloadArray
     }
